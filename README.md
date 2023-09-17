@@ -28,7 +28,7 @@ func main() {
 	//目标dsk
 	fmt.Println(info.TargetSdk, info.TargetSdkName)
 
-	//最新运行sdk
+	//最小运行sdk
 	fmt.Println(info.MinSdk, info.MinSdkName)
 
 	//权限列表
