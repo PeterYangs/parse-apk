@@ -1,3 +1,13 @@
+### 解析安卓apk
+
+**安装**
+
+```shell
+go get gitee.com/mryy1996/parse-apk
+```
+
+**快速开始**
+```go
 package main
 
 import (
@@ -34,3 +44,4 @@ func main() {
 	ioutil.WriteFile("33.png", info.Icon, 0644)
 
 }
+```
