@@ -25,7 +25,7 @@ func main() {
 	//app名称
 	fmt.Println(info.Label)
 
-	//目标dsk
+	//目标sdk
 	fmt.Println(info.TargetSdk, info.TargetSdkName)
 
 	//最小运行sdk
