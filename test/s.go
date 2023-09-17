@@ -12,6 +12,6 @@ func main() {
 	s.LoadPermissionList()
 
 	//fmt.Println(s.GetByKey("android.permission.ACCESS_WIFI_STATE"))
-	fmt.Println(s.GetByKey("android.permission.ACCESS_COARSE_LOCATION"))
+	fmt.Println(s.GetPermissionByKey("android.permission.ACCESS_COARSE_LOCATION"))
 
 }

@@ -12,4 +12,5 @@ type Info struct {
 	MinSdk         int32
 	MinSdkName     string
 	PermissionList []Permission
+	Icon           []byte
 }

@@ -1,10 +1,18 @@
 package src
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"github.com/shogo82148/androidbinary"
 	"github.com/shogo82148/androidbinary/apk"
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/webp"
+	_ "image/draw"
+	_ "image/gif"
+	_ "image/jpeg"
+	"image/png"
+	_ "image/png"
 	"io"
 	"os"
 )
@@ -20,6 +28,7 @@ func NewApk(path string) *Apk {
 	s := NewSdk()
 
 	s.LoadPermissionList()
+	s.LoadVersionList()
 
 	return &Apk{
 		path: path,
@@ -43,17 +52,19 @@ func (a *Apk) Parse() Info {
 		info.Size = size
 	}
 
-	pkg, apkErr := apk.OpenFile(a.path)
-
 	resConfigEN := &androidbinary.ResTableConfig{
 		Language: [2]uint8{uint8('z'), uint8('h')},
 	}
+
+	pkg, apkErr := apk.OpenFile(a.path)
 
 	if apkErr != nil {
 
 		a.ErrorList = append(a.ErrorList, apkErr)
 
 	} else {
+
+		defer pkg.Close()
 
 		label, lErr := pkg.Label(resConfigEN)
 
@@ -100,16 +111,77 @@ func (a *Apk) Parse() Info {
 
 			info.TargetSdk = targetSdk
 
+			version, vErr := a.Sdk.GetVersionByCode(int(targetSdk))
+
+			if vErr != nil {
+
+				a.ErrorList = append(a.ErrorList, vErr)
+
+			} else {
+
+				info.TargetSdkName = version.Name
+
+			}
+
+		}
+
+		minSdk, tErr := pkg.Manifest().SDK.Min.Int32()
+
+		if tErr != nil {
+
+			a.ErrorList = append(a.ErrorList, tErr)
+
+		} else {
+
+			info.MinSdk = minSdk
+
+			version, vErr := a.Sdk.GetVersionByCode(int(minSdk))
+
+			if vErr != nil {
+
+				a.ErrorList = append(a.ErrorList, vErr)
+
+			} else {
+
+				info.MinSdkName = version.Name
+
+			}
+
 		}
 
 		for _, p := range pkg.Manifest().UsesPermissions {
 
-			pe, ee := a.Sdk.GetByKey(p.Name.MustString())
+			pe, ee := a.Sdk.GetPermissionByKey(p.Name.MustString())
 
 			if ee == nil {
 
 				info.PermissionList = append(info.PermissionList, pe)
 
+			}
+
+		}
+
+		icon, iErr := pkg.Icon(&androidbinary.ResTableConfig{
+			Density: 720,
+		})
+
+		if iErr != nil {
+
+			a.ErrorList = append(a.ErrorList, iErr)
+
+		} else {
+
+			buf := bytes.NewBuffer(nil)
+
+			pngErr := png.Encode(buf, icon)
+
+			if pngErr != nil {
+
+				a.ErrorList = append(a.ErrorList, pngErr)
+
+			} else {
+
+				info.Icon = buf.Bytes()
 			}
 
 		}

@@ -3,11 +3,13 @@ package src
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 	"strings"
 )
 
 type Sdk struct {
 	permissionList []Permission
+	versionList    []Version
 }
 
 type Permission struct {
@@ -15,6 +17,12 @@ type Permission struct {
 	Title string `json:"Title"`
 	Memo  string `json:"Memo"`
 	Level int    `json:"Level"`
+}
+
+type Version struct {
+	Name string
+	Code int
+	Char string
 }
 
 func NewSdk() *Sdk {
@@ -862,17 +870,68 @@ func (s *Sdk) LoadPermissionList() {
 
 }
 
-func (s *Sdk) GetByKey(key string) (Permission, error) {
+func (s *Sdk) LoadVersionList() {
 
-	//fmt.Println(s.permissionList)
+	versionList := []Version{
+		{"Android 1.0", 1, "A"},
+		{"Android 1.1", 2, "B"},
+		{"Android 1.5", 3, "C"},
+		{"Android 1.6", 4, "D"},
+		{"Android 2.0", 5, "Eclair"},
+		{"Android 2.0.1", 6, "Eclair"},
+		{"Android 2.1", 7, "Eclair"},
+		{"Android 2.2", 8, "Froyo"},
+		{"Android 2.3", 9, "Gingerbread"},
+		{"Android 2.3.3", 10, "Gingerbread"},
+		{"Android 3.0", 11, "Honeycomb"},
+		{"Android 3.1", 12, "Honeycomb"},
+		{"Android 3.2", 13, "Honeycomb"},
+		{"Android 4.0", 14, "IceCreamSandwich"},
+		{"Android 4.0.3", 15, "IceCreamSandwich"},
+		{"Android 4.1", 16, "Jelly Bean"},
+		{"Android 4.2", 17, "Jelly Bean"},
+		{"Android 4.3", 18, "Jelly Bean"},
+		{"Android 4.4", 19, "KitKat"},
+		{"Android 4.4w", 20, "KitKat Wear"},
+		{"Android 5.0", 21, "Lollipop"},
+		{"Android 5.2", 22, "Lollipop"},
+		{"Android 6", 23, "Marshmallow"},
+		{"Android 7", 24, "Nougat"},
+		{"Android 7.1", 25, "Nougat"},
+		{"Android 8.0", 26, "Oreo"},
+		{"Android 8.1", 27, "Oreo"},
+		{"Android 9", 28, "Pie"},
+		{"Android 10", 29, "Q"},
+		{"Android 11", 30, "R"},
+		{"Android 12", 31, "S"},
+		{"Android 12L", 32, "S"},
+		{"Android 13", 33, "T"},
+		{"Android 14", 34, "U"},
+	}
+
+	s.versionList = versionList
+
+}
+
+func (s *Sdk) GetVersionByCode(code int) (Version, error) {
+
+	for _, version := range s.versionList {
+
+		if version.Code == code {
+
+			return version, nil
+		}
+
+	}
+
+	return Version{}, errors.New("not found version by code " + strconv.Itoa(code))
+}
+
+func (s *Sdk) GetPermissionByKey(key string) (Permission, error) {
 
 	for _, p := range s.permissionList {
 
-		//fmt.Println(p.Key)
-
 		if strings.ToLower(strings.TrimSpace(p.Key)) == strings.ToLower(strings.TrimSpace(key)) {
-
-			//fmt.Println("xx")
 
 			return p, nil
 		}
