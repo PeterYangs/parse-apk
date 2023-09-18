@@ -36,7 +36,7 @@ func NewApk(path string) *Apk {
 	}
 }
 
-func (a *Apk) Parse() Info {
+func (a *Apk) Parse() (Info, error) {
 
 	info := Info{}
 
@@ -60,135 +60,132 @@ func (a *Apk) Parse() Info {
 
 	if apkErr != nil {
 
-		a.ErrorList = append(a.ErrorList, apkErr)
+		return Info{}, apkErr
+	}
+
+	defer pkg.Close()
+
+	label, lErr := pkg.Label(resConfigEN)
+
+	if lErr != nil {
+
+		a.ErrorList = append(a.ErrorList, lErr)
+	} else {
+
+		info.Label = label
+
+	}
+
+	info.Package = pkg.PackageName()
+
+	code, cErr := pkg.Manifest().VersionCode.Int32()
+
+	if cErr != nil {
+
+		a.ErrorList = append(a.ErrorList, cErr)
 
 	} else {
 
-		defer pkg.Close()
+		info.VersionCode = code
+	}
 
-		label, lErr := pkg.Label(resConfigEN)
+	codeName, nErr := pkg.Manifest().VersionName.String()
 
-		if lErr != nil {
+	if nErr != nil {
 
-			a.ErrorList = append(a.ErrorList, lErr)
-		} else {
+		a.ErrorList = append(a.ErrorList, nErr)
 
-			info.Label = label
+	} else {
 
-		}
+		info.VersionName = codeName
+	}
 
-		info.Package = pkg.PackageName()
+	targetSdk, tErr := pkg.Manifest().SDK.Target.Int32()
 
-		code, cErr := pkg.Manifest().VersionCode.Int32()
+	if tErr != nil {
 
-		if cErr != nil {
+		a.ErrorList = append(a.ErrorList, tErr)
 
-			a.ErrorList = append(a.ErrorList, cErr)
+	} else {
 
-		} else {
+		info.TargetSdk = targetSdk
 
-			info.VersionCode = code
-		}
+		version, vErr := a.Sdk.GetVersionByCode(int(targetSdk))
 
-		codeName, nErr := pkg.Manifest().VersionName.String()
+		if vErr != nil {
 
-		if nErr != nil {
-
-			a.ErrorList = append(a.ErrorList, nErr)
+			a.ErrorList = append(a.ErrorList, vErr)
 
 		} else {
 
-			info.VersionName = codeName
-		}
-
-		targetSdk, tErr := pkg.Manifest().SDK.Target.Int32()
-
-		if tErr != nil {
-
-			a.ErrorList = append(a.ErrorList, tErr)
-
-		} else {
-
-			info.TargetSdk = targetSdk
-
-			version, vErr := a.Sdk.GetVersionByCode(int(targetSdk))
-
-			if vErr != nil {
-
-				a.ErrorList = append(a.ErrorList, vErr)
-
-			} else {
-
-				info.TargetSdkName = version.Name
-
-			}
-
-		}
-
-		minSdk, tErr := pkg.Manifest().SDK.Min.Int32()
-
-		if tErr != nil {
-
-			a.ErrorList = append(a.ErrorList, tErr)
-
-		} else {
-
-			info.MinSdk = minSdk
-
-			version, vErr := a.Sdk.GetVersionByCode(int(minSdk))
-
-			if vErr != nil {
-
-				a.ErrorList = append(a.ErrorList, vErr)
-
-			} else {
-
-				info.MinSdkName = version.Name
-
-			}
-
-		}
-
-		for _, p := range pkg.Manifest().UsesPermissions {
-
-			pe, ee := a.Sdk.GetPermissionByKey(p.Name.MustString())
-
-			if ee == nil {
-
-				info.PermissionList = append(info.PermissionList, pe)
-
-			}
-
-		}
-
-		icon, iErr := pkg.Icon(&androidbinary.ResTableConfig{
-			Density: 720,
-		})
-
-		if iErr != nil {
-
-			a.ErrorList = append(a.ErrorList, iErr)
-
-		} else {
-
-			buf := bytes.NewBuffer(nil)
-
-			pngErr := png.Encode(buf, icon)
-
-			if pngErr != nil {
-
-				a.ErrorList = append(a.ErrorList, pngErr)
-
-			} else {
-
-				info.Icon = buf.Bytes()
-			}
+			info.TargetSdkName = version.Name
 
 		}
 
 	}
 
-	return info
+	minSdk, tErr := pkg.Manifest().SDK.Min.Int32()
+
+	if tErr != nil {
+
+		a.ErrorList = append(a.ErrorList, tErr)
+
+	} else {
+
+		info.MinSdk = minSdk
+
+		version, vErr := a.Sdk.GetVersionByCode(int(minSdk))
+
+		if vErr != nil {
+
+			a.ErrorList = append(a.ErrorList, vErr)
+
+		} else {
+
+			info.MinSdkName = version.Name
+
+		}
+
+	}
+
+	for _, p := range pkg.Manifest().UsesPermissions {
+
+		pe, ee := a.Sdk.GetPermissionByKey(p.Name.MustString())
+
+		if ee == nil {
+
+			info.PermissionList = append(info.PermissionList, pe)
+
+		}
+
+	}
+
+	icon, iErr := pkg.Icon(&androidbinary.ResTableConfig{
+		Density: 720,
+	})
+
+	if iErr != nil {
+
+		a.ErrorList = append(a.ErrorList, iErr)
+
+	} else {
+
+		buf := bytes.NewBuffer(nil)
+
+		pngErr := png.Encode(buf, icon)
+
+		if pngErr != nil {
+
+			a.ErrorList = append(a.ErrorList, pngErr)
+
+		} else {
+
+			info.Icon = buf.Bytes()
+		}
+
+	}
+
+	return info, nil
 
 }
 

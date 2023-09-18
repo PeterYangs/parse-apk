@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	a := src.NewApk("file/jumpqpyx_177271.apk")
+	a := src.NewApk("file/com.hz.cfmszzjapk.huawei.2306210946.apk")
 
 	info := a.Parse()
 
