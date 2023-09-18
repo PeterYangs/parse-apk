@@ -8,9 +8,16 @@ import (
 
 func main() {
 
-	a := src.NewApk("file/com.hz.cfmszzjapk.huawei.2306210946.apk")
+	a := src.NewApk("file/2186040.apk")
 
-	info := a.Parse()
+	info, ee := a.Parse()
+
+	if ee != nil {
+
+		fmt.Println(ee)
+
+		return
+	}
 
 	//app名称
 	fmt.Println(info.Label)
