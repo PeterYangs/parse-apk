@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	a := src.NewApk("file/2186040.apk")
+	a := src.NewApk("file/touyingtong3.0.1_2265.com.apk")
 
 	info, ee := a.Parse()
 
@@ -20,7 +20,7 @@ func main() {
 	}
 
 	//app名称
-	fmt.Println(info.Label)
+	fmt.Println(info.Label, "---")
 
 	//目标dsk
 	fmt.Println(info.TargetSdk, info.TargetSdkName)
